@@ -23,6 +23,7 @@ import {
   unreachable,
   warn,
 } from "../shared/util.js";
+import { GlobalDocumentBody } from "./global_document_body.js";
 
 class FontLoader {
   #systemFonts = new Set();
@@ -349,7 +350,8 @@ class FontLoader {
       span.style.fontFamily = name;
       div.append(span);
     }
-    this._document.body.append(div);
+    GlobalDocumentBody.node.append(div);
+    // this._document.body.append(div);
 
     isFontReady(loadTestFontId, () => {
       div.remove();

@@ -40,7 +40,7 @@ import {
   RenderingStates,
   TextLayerMode,
 } from "./ui_utils.js";
-import { AnnotationEditorLayerBuilder } from "./annotation_editor_layer_builder.js";
+// import { AnnotationEditorLayerBuilder } from "./annotation_editor_layer_builder.js";
 import { AnnotationLayerBuilder } from "./annotation_layer_builder.js";
 import { AppOptions } from "./app_options.js";
 import { DrawLayerBuilder } from "./draw_layer_builder.js";
@@ -1120,20 +1120,20 @@ class PDFPageView {
         await this.#renderDrawLayer();
         this.drawLayer.setParent(canvasWrapper);
 
-        this.annotationEditorLayer ||= new AnnotationEditorLayerBuilder({
-          uiManager: annotationEditorUIManager,
-          pdfPage,
-          l10n,
-          structTreeLayer: this.structTreeLayer,
-          accessibilityManager: this._accessibilityManager,
-          annotationLayer: this.annotationLayer?.annotationLayer,
-          textLayer: this.textLayer,
-          drawLayer: this.drawLayer.getDrawLayer(),
-          onAppend: annotationEditorLayerDiv => {
-            this.#addLayer(annotationEditorLayerDiv, "annotationEditorLayer");
-          },
-        });
-        this.#renderAnnotationEditorLayer();
+        // this.annotationEditorLayer ||= new AnnotationEditorLayerBuilder({
+        //   uiManager: annotationEditorUIManager,
+        //   pdfPage,
+        //   l10n,
+        //   structTreeLayer: this.structTreeLayer,
+        //   accessibilityManager: this._accessibilityManager,
+        //   annotationLayer: this.annotationLayer?.annotationLayer,
+        //   textLayer: this.textLayer,
+        //   drawLayer: this.drawLayer.getDrawLayer(),
+        //   onAppend: annotationEditorLayerDiv => {
+        //     this.#addLayer(annotationEditorLayerDiv, "annotationEditorLayer");
+        //   },
+        // });
+        // this.#renderAnnotationEditorLayer();
       },
       error => {
         // When zooming with a `drawingDelay` set, avoid temporarily showing

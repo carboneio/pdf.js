@@ -1,0 +1,348 @@
+
+  #viewerRootNode {
+    width: 100%;
+    height: 100%;
+  }
+
+  #viewerContainer{
+    --viewer-container-height:0;
+    --pdfViewer-padding-bottom:0;
+    --page-margin:1px auto -8px;
+    --page-border:9px solid transparent;
+    --spreadHorizontalWrapped-margin-LR:-3.5px;
+    --loading-icon-delay:400ms;
+
+    --chrome-pdf-viewer-background-light: #525659;
+    
+    position:absolute;
+    outline:none;
+    z-index:0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* important, the scroll must be on this div to make PDF.js work */
+  }
+
+  /* ******************************* source: text_layer_builder.css ****************************************/ 
+  
+  .textLayer{
+    position:absolute;
+    text-align:initial;
+    inset:0;
+    overflow:clip;
+    opacity:1;
+    line-height:1;
+    -webkit-text-size-adjust:none;
+       -moz-text-size-adjust:none;
+            text-size-adjust:none;
+    forced-color-adjust:none;
+    transform-origin:0 0;
+    caret-color:CanvasText;
+    z-index:0;
+  }
+
+  .textLayer.highlighting{
+      touch-action:none;
+    }
+
+  .textLayer :is(span,br){
+    color:transparent;
+    position:absolute;
+    white-space:pre;
+    cursor:text;
+    transform-origin:0% 0%;
+  }
+
+  .textLayer  > :not(.markedContent),.textLayer .markedContent span:not(.markedContent){
+    z-index:1;
+  }
+
+  .textLayer span.markedContent{
+    top:0;
+    height:0;
+  }
+
+  .textLayer span[role="img"]{
+    -webkit-user-select:none;
+       -moz-user-select:none;
+            user-select:none;
+    cursor:default;
+  }
+
+  .textLayer .highlight{
+    --highlight-bg-color:rgb(180 0 170 / 0.25);
+    --highlight-selected-bg-color:rgb(0 100 0 / 0.25);
+    --highlight-backdrop-filter:none;
+    --highlight-selected-backdrop-filter:none;
+  }
+
+  .textLayer .highlight{
+    margin:-1px;
+    padding:1px;
+    background-color:var(--highlight-bg-color);
+    -webkit-backdrop-filter:var(--highlight-backdrop-filter);
+            backdrop-filter:var(--highlight-backdrop-filter);
+    border-radius:4px;
+  }
+
+  .appended:is(.textLayer .highlight){
+    position:initial;
+  }
+
+  .begin:is(.textLayer .highlight){
+    border-radius:4px 0 0 4px;
+  }
+
+  .end:is(.textLayer .highlight){
+    border-radius:0 4px 4px 0;
+  }
+
+  .middle:is(.textLayer .highlight){
+    border-radius:0;
+  }
+
+  .selected:is(.textLayer .highlight){
+    background-color:var(--highlight-selected-bg-color);
+    -webkit-backdrop-filter:var(--highlight-selected-backdrop-filter);
+            backdrop-filter:var(--highlight-selected-backdrop-filter);
+  }
+
+  .textLayer ::-moz-selection{
+    background:rgba(0 0 255 / 0.25);
+    background:color-mix(in srgb, AccentColor, transparent 75%);
+  }
+
+  .textLayer ::selection{
+    background:rgba(0 0 255 / 0.25);
+    background:color-mix(in srgb, AccentColor, transparent 75%);
+  }
+
+  .textLayer br::-moz-selection{
+    background:transparent;
+  }
+
+  .textLayer br::selection{
+    background:transparent;
+  }
+
+  .textLayer .endOfContent{
+    display:block;
+    position:absolute;
+    inset:100% 0 0;
+    z-index:0;
+    cursor:default;
+    -webkit-user-select:none;
+       -moz-user-select:none;
+            user-select:none;
+  }
+
+  .textLayer.selecting .endOfContent{
+    top:0;
+  }
+
+
+  /* ******************************* source: pdf_viewer.css ****************************************/ 
+
+  [data-main-rotation="90"]{
+    transform:rotate(90deg) translateY(-100%);
+  }
+  [data-main-rotation="180"]{
+    transform:rotate(180deg) translate(-100%, -100%);
+  }
+  [data-main-rotation="270"]{
+    transform:rotate(270deg) translateX(-100%);
+  }
+
+  /* Used by PDF viewer when Ctrl+A to select all is used */
+  #hiddenCopyElement, .hiddenCanvasElement{
+    position:absolute;
+    top:0;
+    left:0;
+    width:0;
+    height:0;
+    display:none;
+  }
+
+  .pdfViewer{
+    --scale-factor:1;
+    --page-bg-color:unset;
+
+    padding-bottom:var(--pdfViewer-padding-bottom);
+
+    --hcm-highlight-filter:none;
+    --hcm-highlight-selected-filter:none;
+  }
+
+  .pdfViewer.copyAll{
+    cursor:wait;
+  }
+
+  .pdfViewer .canvasWrapper{
+    overflow:hidden;
+    width:100%;
+    height:100%;
+  }
+
+  :is(.pdfViewer .canvasWrapper) canvas{
+    margin:0;
+    display:block;
+    width:100%;
+    height:100%;
+  }
+
+  [hidden]:is(:is(.pdfViewer .canvasWrapper) canvas){
+    display:none;
+  }
+
+  [zooming]:is(:is(.pdfViewer .canvasWrapper) canvas){
+    width:100%;
+    height:100%;
+  }
+
+  :is(:is(.pdfViewer .canvasWrapper) canvas) .structTree{
+    contain:strict;
+  }
+
+  .pdfViewer .page{
+    --scale-round-x:1px;
+    --scale-round-y:1px;
+
+    direction:ltr;
+    width:816px;
+    height:1056px;
+    margin:var(--page-margin);
+    position:relative;
+    overflow:visible;
+    border:var(--page-border);
+    background-clip:content-box;
+    background-color:var(--page-bg-color, rgb(255 255 255));
+  }
+
+  .pdfViewer .dummyPage{
+    position:relative;
+    width:0;
+    height:var(--viewer-container-height);
+  }
+
+  .pdfViewer.noUserSelect{
+    -webkit-user-select:none;
+       -moz-user-select:none;
+            user-select:none;
+  }
+
+  .pdfViewer.removePageBorders .page{
+    margin:0 auto 10px;
+    border:none;
+  }
+
+  .pdfViewer:is(.scrollHorizontal, .scrollWrapped),
+  .spread{
+    margin-inline:3.5px;
+    text-align:center;
+  }
+
+  .pdfViewer.scrollHorizontal,
+  .spread{
+    white-space:nowrap;
+  }
+
+  .pdfViewer.removePageBorders,
+  .pdfViewer:is(.scrollHorizontal, .scrollWrapped) .spread{
+    margin-inline:0;
+  }
+
+  .spread :is(.page, .dummyPage),
+  .pdfViewer:is(.scrollHorizontal, .scrollWrapped) :is(.page, .spread){
+    display:inline-block;
+    vertical-align:middle;
+  }
+
+  .spread .page,
+  .pdfViewer:is(.scrollHorizontal, .scrollWrapped) .page{
+    margin-inline:var(--spreadHorizontalWrapped-margin-LR);
+  }
+
+  .pdfViewer.removePageBorders .spread .page,
+  .pdfViewer.removePageBorders:is(.scrollHorizontal, .scrollWrapped) .page{
+    margin-inline:5px;
+  }
+
+  .pdfViewer .page.loadingIcon::after{
+    /* to debug and see it, add "loadingIcon loading" on page div, and remove the canvas */
+    position:absolute;
+    top:0;
+    left:0;
+    content:"";
+    width:100%;
+    height:100%;
+    display:none;
+    z-index:5;
+
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    border-width: 0.2rem;
+    border-radius: 50%;
+    border-style: solid;
+    border-color: var(--chrome-pdf-viewer-background-light);
+    animation: 1.6s to-circular linear infinite;
+    background: none;
+    flex: none;
+  }
+
+  .pdfViewer .page.loading::after{
+    display:block;
+  }
+
+  .pdfViewer .page:not(.loading)::after{
+    transition-property:none;
+    display:none;
+  }
+
+  .hidden,
+  [hidden]{
+    display:none !important;
+  }
+
+  @keyframes to-circular {
+    0% {
+      transform: rotate(0deg);
+      clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%);
+    }
+
+    20% {
+      clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 100% 0%, 100% 0%, 100% 0%, 100% 0%, 100% 0%, 100% 0%);
+    }
+
+    30% {
+      clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 100% 0%, 100% 50%, 100% 50%, 100% 50%, 100% 50%, 100% 50%);
+    }
+
+    40% {
+      clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 100% 0%, 100% 50%, 100% 100%, 100% 100%, 100% 100%, 100% 100%);
+    }
+
+    50% {
+      clip-path: polygon(50% 50%, 50% 0%, 50% 0%, 100% 0%, 100% 50%, 100% 100%, 50% 100%, 50% 100%, 50% 100%);
+    }
+
+    60% {
+      clip-path: polygon(50% 50%, 100% 50%, 100% 50%, 100% 50%, 100% 50%, 100% 100%, 50% 100%, 0% 100%, 0% 100%);
+    }
+
+    70% {
+      clip-path: polygon(50% 50%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 0% 100%, 0% 50%);
+    }
+
+    80% {
+      clip-path: polygon(50% 50%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 50%);
+    }
+
+    90% {
+      transform: rotate(360deg);
+      clip-path: polygon(50% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%);
+    }
+
+    100% {
+      clip-path: polygon(50% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%);
+    }
+  }
+
