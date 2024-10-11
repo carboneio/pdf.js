@@ -304,7 +304,7 @@ function createWebpackConfig(
   const babelExcludeRegExp = [
     // `core-js`, see https://github.com/zloirock/core-js/issues/514,
     // should be excluded from processing.
-    /node_modules[\\/]core-js/,
+    /(node_modules[\\/]core-js)|(pdf\.worker(?:\.min)?\.mjs)/, /* exclude the injected worker to avoid weird issue -> breaks JS code */
   ];
 
   const babelPresets = skipBabel

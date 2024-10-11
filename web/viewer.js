@@ -13,98 +13,12 @@
  * limitations under the License.
  */
 
-
 import { RenderingStates, ScrollMode, SpreadMode } from "./ui_utils.js";
 import { AppOptions } from "./app_options.js";
 import { LinkTarget } from "./pdf_link_service.js";
 import { PDFViewerApplication } from "./app.js";
 
-
-const AppConstants =
-  typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
-    ? { LinkTarget, RenderingStates, ScrollMode, SpreadMode }
-    : null;
-
-// window.PDFViewerApplication = PDFViewerApplication;
-// window.PDFViewerApplicationConstants = AppConstants;
-// window.PDFViewerApplicationOptions = AppOptions;
-
-// function getViewerConfiguration() {
-//   return {
-//     appContainer: document.body,
-//     principalContainer: document.getElementById("mainContainer"),
-//     mainContainer: document.getElementById("viewerContainer"),
-//     viewerContainer: document.getElementById("viewer"),
-//     /*toolbar: {
-//       container: document.getElementById("toolbarContainer"),
-//       numPages: document.getElementById("numPages"),
-//       pageNumber: document.getElementById("pageNumber"),
-//       scaleSelect: document.getElementById("scaleSelect"),
-//       customScaleOption: document.getElementById("customScaleOption"),
-//       previous: document.getElementById("previous"),
-//       next: document.getElementById("next"),
-//       zoomIn: document.getElementById("zoomInButton"),
-//       zoomOut: document.getElementById("zoomOutButton")
-//     },
-//     findBar: {
-//       bar: document.getElementById("findbar"),
-//       toggleButton: document.getElementById("viewFindButton"),
-//       findField: document.getElementById("findInput"),
-//       highlightAllCheckbox: document.getElementById("findHighlightAll"),
-//       caseSensitiveCheckbox: document.getElementById("findMatchCase"),
-//       matchDiacriticsCheckbox: document.getElementById("findMatchDiacritics"),
-//       entireWordCheckbox: document.getElementById("findEntireWord"),
-//       findMsg: document.getElementById("findMsg"),
-//       findResultsCount: document.getElementById("findResultsCount"),
-//       findPreviousButton: document.getElementById("findPreviousButton"),
-//       findNextButton: document.getElementById("findNextButton"),
-//     }*/
-//   };
-// }
-
-// function webViewerLoad() {
-//   const config = getViewerConfiguration();
-
-//   if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("GENERIC")) {
-//     // Give custom implementations of the default viewer a simpler way to
-//     // set various `AppOptions`, by dispatching an event once all viewer
-//     // files are loaded but *before* the viewer initialization has run.
-//     const event = new CustomEvent("webviewerloaded", {
-//       bubbles: true,
-//       cancelable: true,
-//       detail: {
-//         source: window,
-//       },
-//     });
-//     try {
-//       // Attempt to dispatch the event at the embedding `document`,
-//       // in order to support cases where the viewer is embedded in
-//       // a *dynamically* created <iframe> element.
-//       parent.document.dispatchEvent(event);
-//     } catch (ex) {
-//       // The viewer could be in e.g. a cross-origin <iframe> element,
-//       // fallback to dispatching the event at the current `document`.
-//       console.error(`webviewerloaded: ${ex}`);
-//       document.dispatchEvent(event);
-//     }
-//   }
-//   // config.url = "test-image.pdf";
-//   config.url = "compressed.tracemonkey-pldi-09.pdf";
-//   PDFViewerApplication.run(config);
-// }
-
-// // Block the "load" event until all pages are loaded, to ensure that printing
-// // works in Firefox; see https://bugzilla.mozilla.org/show_bug.cgi?id=1618553
-// document.blockUnblockOnload?.(true);
-
-// if (
-//   document.readyState === "interactive" ||
-//   document.readyState === "complete"
-// ) {
-//   webViewerLoad();
-// } else {
-//   document.addEventListener("DOMContentLoaded", webViewerLoad, true);
-// }
+const AppConstants = { LinkTarget, RenderingStates, ScrollMode, SpreadMode };
 
 export {
   PDFViewerApplication,

@@ -662,6 +662,7 @@ const PDFViewerApplication = {
       signal,
     });
 
+    eventBus._on("findfromurlhash", onFindFromUrlHash.bind(this), { signal });
     eventBus._on(
       "updatefindmatchescount",
       onUpdateFindMatchesCount.bind(this),
@@ -845,6 +846,18 @@ function onResize() {
   pdfViewer.update();
 }
 
+function onFindFromUrlHash(evt) {
+  this.eventBus.dispatch("find", {
+    source: evt.source,
+    type: "",
+    query: evt.query,
+    caseSensitive: false,
+    entireWord: false,
+    highlightAll: true,
+    findPrevious: false,
+    matchDiacritics: true,
+  });
+}
 function onUpdateFindMatchesCount({ matchesCount }) {
   this.findBar?.updateResultsCount(matchesCount);
 }
