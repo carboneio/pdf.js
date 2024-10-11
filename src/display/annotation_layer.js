@@ -42,7 +42,7 @@ import {
   PDFDateString,
   setLayerDimensions,
 } from "./display_utils.js";
-import { AnnotationStorage } from "./annotation_storage.js";
+// import { AnnotationStorage } from "./annotation_storage.js";
 import { ColorConverters } from "../shared/scripting_utils.js";
 import { XfaLayer } from "./xfa_layer.js";
 
@@ -3164,7 +3164,7 @@ class AnnotationLayer {
       imageResourcesPath: params.imageResourcesPath || "",
       renderForms: params.renderForms !== false,
       svgFactory: new DOMSVGFactory(),
-      annotationStorage: params.annotationStorage || new AnnotationStorage(),
+      annotationStorage: params.annotationStorage, // || new AnnotationStorage(),
       enableScripting: params.enableScripting === true,
       hasJSActions: params.hasJSActions,
       fieldObjects: params.fieldObjects,

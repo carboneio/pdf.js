@@ -145,16 +145,6 @@ const defaultOptions = {
         : "",
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE,
   },
-  annotationEditorMode: {
-    /** @type {number} */
-    value: 0,
-    kind: OptionKind.VIEWER + OptionKind.PREFERENCE,
-  },
-  annotationMode: {
-    /** @type {number} */
-    value: 2,
-    kind: OptionKind.VIEWER + OptionKind.PREFERENCE,
-  },
   cursorToolOnLoad: {
     /** @type {number} */
     value: 0,
@@ -184,21 +174,6 @@ const defaultOptions = {
     /** @type {boolean} */
     value: false,
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE,
-  },
-  enableAltText: {
-    /** @type {boolean} */
-    value: false,
-    kind: OptionKind.VIEWER + OptionKind.PREFERENCE,
-  },
-  enableAltTextModelDownload: {
-    /** @type {boolean} */
-    value: true,
-    kind: OptionKind.VIEWER + OptionKind.PREFERENCE + OptionKind.EVENT_DISPATCH,
-  },
-  enableGuessAltText: {
-    /** @type {boolean} */
-    value: true,
-    kind: OptionKind.VIEWER + OptionKind.PREFERENCE + OptionKind.EVENT_DISPATCH,
   },
   enableHighlightFloatingButton: {
     // We'll probably want to make some experiments before enabling this
@@ -383,7 +358,8 @@ const defaultOptions = {
   },
   isEvalSupported: {
     /** @type {boolean} */
-    value: true,
+    /* Disable javascript execution inside PDF */
+    value: false,
     kind: OptionKind.API,
   },
   isOffscreenCanvasSupported: {

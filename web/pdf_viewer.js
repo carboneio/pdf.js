@@ -29,8 +29,8 @@
 /** @typedef {import("./pdf_scripting_manager").PDFScriptingManager} PDFScriptingManager */
 
 import {
-  AnnotationEditorType,
-  AnnotationEditorUIManager,
+  // AnnotationEditorType,
+  // AnnotationEditorUIManager,
   AnnotationMode,
   PermissionFlag,
   PixelsPerInch,
@@ -75,12 +75,12 @@ const PagesCountLimit = {
   PAUSE_EAGER_PAGE_INIT: 250,
 };
 
-function isValidAnnotationEditorMode(mode) {
-  return (
-    Object.values(AnnotationEditorType).includes(mode) &&
-    mode !== AnnotationEditorType.DISABLE
-  );
-}
+// function isValidAnnotationEditorMode(mode) {
+//   return (
+//     Object.values(AnnotationEditorType).includes(mode) &&
+//     mode !== AnnotationEditorType.DISABLE
+//   );
+// }
 
 /**
  * @typedef {Object} PDFViewerOptions
@@ -203,11 +203,11 @@ class PDFViewer {
 
   #altTextManager = null;
 
-  #annotationEditorHighlightColors = null;
+  // #annotationEditorHighlightColors = null;
 
-  #annotationEditorMode = AnnotationEditorType.NONE;
+  // #annotationEditorMode = AnnotationEditorType.NONE;
 
-  #annotationEditorUIManager = null;
+  // #annotationEditorUIManager = null;
 
   #annotationMode = AnnotationMode.ENABLE_FORMS;
 
@@ -289,10 +289,10 @@ class PDFViewer {
     this.#textLayerMode = options.textLayerMode ?? TextLayerMode.ENABLE;
     this.#annotationMode =
       options.annotationMode ?? AnnotationMode.ENABLE_FORMS;
-    this.#annotationEditorMode =
-      options.annotationEditorMode ?? AnnotationEditorType.NONE;
-    this.#annotationEditorHighlightColors =
-      options.annotationEditorHighlightColors || null;
+    // this.#annotationEditorMode =
+    //   options.annotationEditorMode ?? AnnotationEditorType.NONE;
+    // this.#annotationEditorHighlightColors =
+    //   options.annotationEditorHighlightColors || null;
     this.#enableHighlightFloatingButton =
       options.enableHighlightFloatingButton === true;
     this.#enableUpdatedAddImage = options.enableUpdatedAddImage === true;
@@ -589,9 +589,9 @@ class PDFViewer {
   get _layerProperties() {
     const self = this;
     return shadow(this, "_layerProperties", {
-      get annotationEditorUIManager() {
-        return self.#annotationEditorUIManager;
-      },
+      // get annotationEditorUIManager() {
+      //   return self.#annotationEditorUIManager;
+      // },
       get annotationStorage() {
         return self.pdfDocument?.annotationStorage;
       },
@@ -622,7 +622,8 @@ class PDFViewer {
    */
   #initializePermissions(permissions) {
     const params = {
-      annotationEditorMode: this.#annotationEditorMode,
+      // annotationEditorMode: this.#annotationEditorMode,
+      annotationEditorMode: {},
       annotationMode: this.#annotationMode,
       textLayerMode: this.#textLayerMode,
     };
@@ -637,9 +638,9 @@ class PDFViewer {
       params.textLayerMode = TextLayerMode.ENABLE_PERMISSIONS;
     }
 
-    if (!permissions.includes(PermissionFlag.MODIFY_CONTENTS)) {
-      params.annotationEditorMode = AnnotationEditorType.DISABLE;
-    }
+    // if (!permissions.includes(PermissionFlag.MODIFY_CONTENTS)) {
+    //   params.annotationEditorMode = AnnotationEditorType.DISABLE;
+    // }
 
     if (
       !permissions.includes(PermissionFlag.MODIFY_ANNOTATIONS) &&
@@ -797,8 +798,8 @@ class PDFViewer {
       this.findController?.setDocument(null);
       this._scriptingManager?.setDocument(null);
 
-      this.#annotationEditorUIManager?.destroy();
-      this.#annotationEditorUIManager = null;
+      // this.#annotationEditorUIManager?.destroy();
+      // this.#annotationEditorUIManager = null;
     }
 
     this.pdfDocument = pdfDocument;
@@ -880,7 +881,7 @@ class PDFViewer {
           viewer.before(element);
         }
 
-        if (
+        /* if (
           ((typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) ||
             typeof AbortSignal.any === "function") &&
           annotationEditorMode !== AnnotationEditorType.DISABLE
@@ -916,7 +917,7 @@ class PDFViewer {
           } else {
             console.error(`Invalid AnnotationEditor mode: ${mode}`);
           }
-        }
+        } */
 
         const viewerElement =
           this._scrollMode === ScrollMode.PAGE ? null : viewer;
@@ -1007,13 +1008,13 @@ class PDFViewer {
             );
           }
 
-          if (this.#annotationEditorUIManager) {
+          /* if (this.#annotationEditorUIManager) {
             // Ensure that the Editor buttons, in the toolbar, are updated.
             eventBus.dispatch("annotationeditormodechanged", {
               source: this,
               mode: this.#annotationEditorMode,
             });
-          }
+          } */
 
           // In addition to 'disableAutoFetch' being set, also attempt to reduce
           // resource usage when loading *very* long/large documents.
@@ -1140,7 +1141,7 @@ class PDFViewer {
     this.#hiddenCopyElement?.remove();
     this.#hiddenCopyElement = null;
 
-    this.#cleanupSwitchAnnotationEditorMode();
+    // this.#cleanupSwitchAnnotationEditorMode();
   }
 
   #ensurePageViewVisible() {
@@ -2279,7 +2280,7 @@ class PDFViewer {
     ]);
   }
 
-  #cleanupSwitchAnnotationEditorMode() {
+  /* #cleanupSwitchAnnotationEditorMode() {
     this.#switchAnnotationEditorModeAC?.abort();
     this.#switchAnnotationEditorModeAC = null;
 
@@ -2287,13 +2288,13 @@ class PDFViewer {
       clearTimeout(this.#switchAnnotationEditorModeTimeoutId);
       this.#switchAnnotationEditorModeTimeoutId = null;
     }
-  }
+  }*/
 
-  get annotationEditorMode() {
+  /*get annotationEditorMode() {
     return this.#annotationEditorUIManager
       ? this.#annotationEditorMode
       : AnnotationEditorType.DISABLE;
-  }
+  } */
 
   /**
    * @typedef {Object} AnnotationEditorModeOptions
@@ -2306,7 +2307,7 @@ class PDFViewer {
   /**
    * @param {AnnotationEditorModeOptions} options
    */
-  set annotationEditorMode({ mode, editId = null, isFromKeyboard = false }) {
+  /* set annotationEditorMode({ mode, editId = null, isFromKeyboard = false }) {
     if (!this.#annotationEditorUIManager) {
       throw new Error(`The AnnotationEditor is not enabled.`);
     }
@@ -2375,7 +2376,7 @@ class PDFViewer {
       }
     }
     updater();
-  }
+  } */
 
   refresh(noUpdate = false, updateArgs = Object.create(null)) {
     if (!this.pdfDocument) {

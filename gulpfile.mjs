@@ -304,7 +304,7 @@ function createWebpackConfig(
   const babelExcludeRegExp = [
     // `core-js`, see https://github.com/zloirock/core-js/issues/514,
     // should be excluded from processing.
-    /node_modules[\\/]core-js/,
+    /(node_modules[\\/]core-js)|(pdf\.worker(?:\.min)?\.mjs)/, /* exclude the injected worker to avoid weird issue -> breaks JS code */
   ];
 
   const babelPresets = skipBabel
@@ -373,12 +373,23 @@ function createWebpackConfig(
     module: {
       rules: [
         {
+          test: /pdf\.worker(?:\.min)?\.mjs$/, // when there is an import of this file
+          type: "asset/source", // insert the string directly in the code source
+        },
+        {
           loader: "babel-loader",
           exclude: babelExcludeRegExp,
           options: {
             presets: babelPresets,
             plugins: babelPlugins,
             targets: BABEL_TARGETS,
+          },
+        },
+        {
+          test: /api\.js$/,
+          loader: "webpack-preprocessor-loader", // conditionnaly disable/entire JS part
+          options: {
+            params: defines, // GENERIC: true, MINIFIED : true ..
           },
         },
       ],
@@ -549,7 +560,7 @@ function createWebBundle(defines, options) {
   const viewerFileConfig = createWebpackConfig(
     defines,
     {
-      filename: "viewer.mjs",
+      filename: defines.MINIFIED ? "viewer.min.mjs" : "viewer.mjs",
       library: {
         type: "module",
       },
@@ -998,12 +1009,18 @@ function preprocessHTML(source, defines) {
   return createStringSource(source.substr(i + 1), `${out.trimEnd()}\n`);
 }
 
-function buildGeneric(defines, dir) {
+function buildWorker(defines, dir) {
+  // Build worker separately, to build it before the rest,
+  // and include the worker as a string in the final build
   fs.rmSync(dir, { recursive: true, force: true });
+  return ordered([createWorkerBundle(defines).pipe(gulp.dest(dir + "build"))]);
+}
 
+function buildGeneric(defines, dir) {
+  // fs.rmSync(dir, { recursive: true, force: true });
   return ordered([
+    // createWorkerBundle(defines).pipe(gulp.dest(dir + "build")),
     createMainBundle(defines).pipe(gulp.dest(dir + "build")),
-    createWorkerBundle(defines).pipe(gulp.dest(dir + "build")),
     createSandboxBundle(defines).pipe(gulp.dest(dir + "build")),
     createWebBundle(defines, {
       defaultPreferencesDir: defines.SKIP_BABEL
@@ -1058,6 +1075,14 @@ gulp.task(
     },
     async function prefsGeneric() {
       await parseDefaultPreferences("generic/");
+    },
+    // Build worker separately, to build it before the rest,
+    // and include the worker as a string in the final build
+    function createWorker() {
+      console.log();
+      console.log("### Web Worker for later use in createGeneric");
+      const defines = { ...DEFINES, GENERIC: true };
+      return buildWorker(defines, GENERIC_DIR);
     },
     function createGeneric() {
       console.log();
@@ -1185,12 +1210,21 @@ gulp.task(
   })
 );
 
-function buildMinified(defines, dir) {
+function buildMinifiedWorker(defines, dir) {
+  // Build worker separately, to build it before the rest,
+  // and include the worker as a string in the final build
   fs.rmSync(dir, { recursive: true, force: true });
+  return ordered([createWorkerBundle(defines).pipe(gulp.dest(dir + "build"))]);
+}
 
+function buildMinified(defines, dir) {
+  // fs.rmSync(dir, { recursive: true, force: true });
   return ordered([
     createMainBundle(defines).pipe(gulp.dest(dir + "build")),
-    createWorkerBundle(defines).pipe(gulp.dest(dir + "build")),
+    createWebBundle(defines, {
+      defaultPreferencesDir:  "minified/"
+    }).pipe(gulp.dest(dir + "web")),
+    // createWorkerBundle(defines).pipe(gulp.dest(dir + "build")),
     createSandboxBundle(defines).pipe(gulp.dest(dir + "build")),
     createImageDecodersBundle({ ...defines, IMAGE_DECODERS: true }).pipe(
       gulp.dest(dir + "image_decoders")
@@ -1212,6 +1246,13 @@ gulp.task(
     },
     async function prefsMinified() {
       await parseDefaultPreferences("minified/");
+    },
+    function createMinifiedWorker() {
+      console.log();
+      console.log("### Creating minified worker");
+      const defines = { ...DEFINES, MINIFIED: true, GENERIC: true };
+
+      return buildMinifiedWorker(defines, MINIFIED_DIR);
     },
     function createMinified() {
       console.log();

@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-const {
+import {
   AbortException,
-  AnnotationEditorLayer,
-  AnnotationEditorParamsType,
-  AnnotationEditorType,
-  AnnotationEditorUIManager,
+  // AnnotationEditorLayer,
+  // AnnotationEditorParamsType,
+  // AnnotationEditorType,
+  // AnnotationEditorUIManager,
   AnnotationLayer,
   AnnotationMode,
   build,
   CMapCompressionType,
-  ColorPicker,
+  // ColorPicker,
   createValidAbsoluteUrl,
   DOMSVGFactory,
   DrawLayer,
@@ -58,19 +58,19 @@ const {
   VerbosityLevel,
   version,
   XfaLayer,
-} = globalThis.pdfjsLib;
+} from "../src/pdf.js";
 
 export {
   AbortException,
-  AnnotationEditorLayer,
-  AnnotationEditorParamsType,
-  AnnotationEditorType,
-  AnnotationEditorUIManager,
+  // AnnotationEditorLayer,
+  // AnnotationEditorParamsType,
+  // AnnotationEditorType,
+  // AnnotationEditorUIManager,
   AnnotationLayer,
   AnnotationMode,
   build,
   CMapCompressionType,
-  ColorPicker,
+  // ColorPicker,
   createValidAbsoluteUrl,
   DOMSVGFactory,
   DrawLayer,

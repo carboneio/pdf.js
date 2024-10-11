@@ -1,4 +1,131 @@
-# PDF.js [![Build Status](https://github.com/mozilla/pdf.js/workflows/CI/badge.svg?branch=master)](https://github.com/mozilla/pdf.js/actions?query=workflow%3ACI+branch%3Amaster)
+# Light PDF.js
+
+
+## Fork documentation
+
+
+### Why a fork?
+
+- Single bundled JS file: no need for additional requests to download files like `pdf.worker.js`
+- Still utilizes web workers for performance optimization
+- A lightweight package: 1.64 MB (or 499 KB compressed)
+  - No annotation editor (at least 100 KB of code)
+  - No thumbnail viewer
+  - No secondary toolbar
+  - No presentation mode
+  - No download/save feature
+  - No browser history support
+- External toolbar/search bar with minimal CSS
+- Fully functional within a Shadow DOM component. By default, the viewer adds a canvas and hidden divs to the global document body for the text layer...
+  - A new global `document.body` can be defined through `src/display/global_document_body.js` by passing `rootNode` during initialization
+- Supports all the key features that make PDF.js a good viewer (lazy loading, selectable text, etc.)
+
+### How to build
+
+```sh
+# Result => build/generic/web/viewer.mjs
+npx gulp generic
+# Or minified -> build/minified/web/viewer.min.mjs
+npx gulp minified
+```
+
+### How to use it?
+
+- Minimal JS:
+
+```js
+  import { PDFViewerApplication, PDFViewerApplicationOptions } from './build/generic/web/viewer.mjs'
+
+  const config = {
+    // rootNode is a specific feature added to PDF.js, to avoid modyfing global DOM
+    rootNode        : document.body, // or the first child of your shadow root document.getElementById("viewerRootNode")
+    mainContainer   : document.getElementById("viewerContainer"),
+    viewerContainer : document.getElementById("viewer"),
+  }
+  
+  // Init 
+  PDFViewerApplication.run(config);
+
+  // Listen some events. For other events, see the orginal viewer code (web/app.js ...)
+  PDFViewerApplicationOptions.eventBus.on('documentloaded', (pdfDocument)    => {} );
+  PDFViewerApplicationOptions.eventBus.on('pagechanging'  , ({ pageNumber }) => {} );
+  PDFViewerApplicationOptions.eventBus.on('updateviewarea', ({location})     => {} );
+
+  // open a PDF, and set an initial position
+  const _initWithScrollPagePosition = `page=${location.pageNumber}&zoom=${location.scale},${location.left},${location.top}`;
+  await PDFViewerApplication.open({url : newState.lastRenderUrl, initHashView : _initWithScrollPagePosition });
+
+  // close
+  await PDFViewerApplication.close();
+```
+
+- Minimal HTML
+
+```html
+  <div id="viewerRootNode">
+    <div id="viewerContainer">
+      <div id="viewer" class="pdfViewer"></div>
+    </div>
+  </div>
+```
+
+- Minimal CSS : `web/viewer-compact.css` 
+
+
+### Next Steps
+
+- Document, add examples, and publish the NPM module
+- Use `webpack-preprocessor-loader` to deactivate parts of the code with the builder instead of removing them from the code
+- Create separate `web/app.js` and `web/viewer.js` files to keep the originals, and add a new build process in Gulp/Webpack
+
+Optional:
+
+- remove ./src/display/network.js ?
+- remove code for NodeJS (fs, https, http, url)?
+- remove XFA?
+- remove Annotation Viewer?
+- remove import { PDFDataTransportStream } from "./transport_stream.js";  ?
+- remove import { PDFFetchStream } from "display-fetch_stream";  ?
+- remove import { PDFNetworkStream } from "display-network";  ?
+- remove import { PDFNodeStream } from "display-node_stream";  ?
+
+
+### Best method to see unused code
+
+- FIX_ME: the dev mode is broken when we inject the worker is injected inside src/display/api.js
+
+```sh
+npx gulp server
+
+# test
+http://localhost:8888/web/viewer.html
+```
+
+ Go to Chrome DevTools and search for "Coverage"
+- Remove everything that is not being used
+
+
+```sh
+npx gulp generic
+
+# Test du viewer buildé
+http://localhost:8888/build/generic/web/viewer.html
+```
+
+
+```sh
+npx gulp minified
+
+# Test du viewer buildé
+http://localhost:8888/build/generic/web/viewer.html
+```
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+Original README:
+
+
+## PDF.js [![Build Status](https://github.com/mozilla/pdf.js/workflows/CI/badge.svg?branch=master)](https://github.com/mozilla/pdf.js/actions?query=workflow%3ACI+branch%3Amaster)
 
 [PDF.js](https://mozilla.github.io/pdf.js/) is a Portable Document Format (PDF) viewer that is built with HTML5.
 

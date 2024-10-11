@@ -29,6 +29,8 @@ import {
   warn,
 } from "../shared/util.js";
 
+import { GlobalDocumentBody } from "./global_document_body.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 class PixelsPerInch {
@@ -94,7 +96,8 @@ class DOMFilterFactory extends BaseFilterFactory {
       this.#_defs = this.#document.createElementNS(SVG_NS, "defs");
       div.append(svg);
       svg.append(this.#_defs);
-      this.#document.body.append(div);
+      GlobalDocumentBody.node.append(div);
+      // this.#document.body.append(div);
     }
     return this.#_defs;
   }
@@ -1065,7 +1068,8 @@ function getRGB(color) {
 function getColorValues(colors) {
   const span = document.createElement("span");
   span.style.visibility = "hidden";
-  document.body.append(span);
+  GlobalDocumentBody.node.append(span);
+  // document.body.append(span);
   for (const name of colors.keys()) {
     span.style.color = name;
     const computedColor = window.getComputedStyle(span).color;

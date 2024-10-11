@@ -16,6 +16,12 @@
 /**
  * @module pdfjsLib
  */
+// Include source code of worker in  build
+//#!if MINIFIED
+import webWorkerSrc from "../../build/minified/build/pdf.worker.min.mjs";
+//#!elseif GENERIC
+import webWorkerSrc from "../../build/generic/build/pdf.worker.mjs";
+//#!endif
 
 import {
   AbortException,
@@ -37,11 +43,11 @@ import {
   unreachable,
   warn,
 } from "../shared/util.js";
-import {
-  AnnotationStorage,
-  PrintAnnotationStorage,
-  SerializableEmpty,
-} from "./annotation_storage.js";
+// import {
+//   AnnotationStorage,
+//   PrintAnnotationStorage,
+//   SerializableEmpty,
+// } from "./annotation_storage.js";
 import {
   deprecated,
   DOMCanvasFactory,
@@ -2161,29 +2167,36 @@ class PDFWorker {
     // all requirements to run parts of pdf.js in a web worker.
     // Right now, the requirement is, that an Uint8Array is still an
     // Uint8Array as it arrives on the worker.
-    if (
-      PDFWorker.#isWorkerDisabled ||
-      PDFWorker.#mainThreadWorkerMessageHandler
-    ) {
-      this._setupFakeWorker();
-      return;
-    }
+    // if (
+    //   PDFWorker.#isWorkerDisabled ||
+    //   PDFWorker.#mainThreadWorkerMessageHandler
+    // ) {
+    //   this._setupFakeWorker();
+    //   return;
+    // }
     let { workerSrc } = PDFWorker;
 
     try {
       // Wraps workerSrc path into blob URL, if the former does not belong
       // to the same origin.
-      if (
-        typeof PDFJSDev !== "undefined" &&
-        PDFJSDev.test("GENERIC") &&
-        !PDFWorker._isSameOrigin(window.location.href, workerSrc)
-      ) {
-        workerSrc = PDFWorker._createCDNWrapper(
-          new URL(workerSrc, window.location).href
-        );
-      }
+      // if (
+      //   typeof PDFJSDev !== "undefined" &&
+      //   PDFJSDev.test("GENERIC") &&
+      //   !PDFWorker._isSameOrigin(window.location.href, workerSrc)
+      // ) {
+      //   workerSrc = PDFWorker._createCDNWrapper(
+      //     new URL(workerSrc, window.location).href
+      //   );
+      // }
 
-      const worker = new Worker(workerSrc, { type: "module" });
+      // static load
+      // #!if GENERIC
+      const blob = new Blob([webWorkerSrc], { type: "text/javascript" });
+      const worker = new Worker(URL.createObjectURL(blob),  { type: "module" });
+      // #!else
+      //const worker = new Worker(workerSrc, { type: "module" });
+      // #!endif
+
       const messageHandler = new MessageHandler("main", "worker", worker);
       const terminateEarly = () => {
         ac.abort();
@@ -2445,7 +2458,7 @@ class WorkerTransport {
   }
 
   get annotationStorage() {
-    return shadow(this, "annotationStorage", new AnnotationStorage());
+    return shadow(this, "annotationStorage", {});
   }
 
   getRenderingIntent(
@@ -2456,7 +2469,7 @@ class WorkerTransport {
     isOpList = false
   ) {
     let renderingIntent = RenderingIntentFlag.DISPLAY; // Default value.
-    let annotationStorageSerializable = SerializableEmpty;
+    let annotationStorageSerializable = {};
 
     switch (intent) {
       case "any":
@@ -2471,11 +2484,7 @@ class WorkerTransport {
         warn(`getRenderingIntent - invalid intent: ${intent}`);
     }
 
-    const annotationStorage =
-      renderingIntent & RenderingIntentFlag.PRINT &&
-      printAnnotationStorage instanceof PrintAnnotationStorage
-        ? printAnnotationStorage
-        : this.annotationStorage;
+    const annotationStorage = {};
 
     switch (annotationMode) {
       case AnnotationMode.DISABLE:
@@ -2502,8 +2511,8 @@ class WorkerTransport {
       renderingIntent += RenderingIntentFlag.OPLIST;
     }
 
-    const { ids: modifiedIds, hash: modifiedIdsHash } =
-      annotationStorage.modifiedIds;
+    const { ids: modifiedIds, hash: modifiedIdsHash } = { modifiedIds : 0, modifiedIdsHash : 0}
+    /*  annotationStorage.modifiedIds; */
 
     const cacheKeyBuf = [
       renderingIntent,
@@ -2541,9 +2550,9 @@ class WorkerTransport {
     this.#pagePromises.clear();
     this.#pageRefCache.clear();
     // Allow `AnnotationStorage`-related clean-up when destroying the document.
-    if (this.hasOwnProperty("annotationStorage")) {
-      this.annotationStorage.resetModified();
-    }
+    // if (this.hasOwnProperty("annotationStorage")) {
+    //   this.annotationStorage.resetModified();
+    // }
     // We also need to wait for the worker to finish its long running tasks.
     const terminated = this.messageHandler.sendWithPromise("Terminate", null);
     waitOn.push(terminated);

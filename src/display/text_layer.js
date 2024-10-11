@@ -23,6 +23,7 @@ import {
   Util,
   warn,
 } from "../shared/util.js";
+import { GlobalDocumentBody } from "./global_document_body.js";
 import { setLayerDimensions } from "./display_utils.js";
 
 /**
@@ -479,7 +480,8 @@ class TextLayer {
       const canvas = document.createElement("canvas");
       canvas.className = "hiddenCanvasElement";
       canvas.lang = lang;
-      document.body.append(canvas);
+      GlobalDocumentBody.node.append(canvas);
+      // document.body.append(canvas);
       ctx = canvas.getContext("2d", {
         alpha: false,
         willReadFrequently: true,
@@ -515,7 +517,8 @@ class TextLayer {
     div.style.fontSize = "1px";
     div.style.position = "absolute";
     div.textContent = "X";
-    document.body.append(div);
+    GlobalDocumentBody.node.append(div);
+    // document.body.append(div);
     // In `display:block` elements contain a single line of text,
     // the height matches the line height (which, when set to 1,
     // matches the actual font size).
