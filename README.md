@@ -55,8 +55,11 @@ npx gulp minified
   const _initWithScrollPagePosition = `page=${location.pageNumber}&zoom=${location.scale},${location.left},${location.top}`;
   await PDFViewerApplication.open({url : newState.lastRenderUrl, initHashView : _initWithScrollPagePosition });
 
-  // close
+  // close PDF only
   await PDFViewerApplication.close();
+
+  // close the viewer (stop all internal listeners)
+  await PDFViewerApplication.stop();
 ```
 
 - Minimal HTML

@@ -82,7 +82,7 @@ const PDFViewerApplication = {
   baseUrl: "",
   _eventBusAbortController: null,
   _windowAbortController: null,
-  _globalAbortController: new AbortController(),
+  _globalAbortController: null,
   documentInfo: null,
   metadata: null,
   _contentDispositionFilename: null,
@@ -187,7 +187,17 @@ const PDFViewerApplication = {
   },
 
   async run(config) {
+    // init AbordController becasue it can be nullified in stop(
+    this._globalAbortController = new AbortController();
     await this.initialize(config);
+  },
+
+  async stop() {
+    this.unbindEvents();
+    this.unbindWindowEvents();
+
+    this._globalAbortController?.abort();
+    this._globalAbortController = null;
   },
 
   get initialized() {
