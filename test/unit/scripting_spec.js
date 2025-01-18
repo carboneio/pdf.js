@@ -243,6 +243,12 @@ describe("Scripting", function () {
 
         value = await myeval(`util.scand(2, "4/15/07 3:14:15 am").toString()`);
         expect(new Date(value)).toEqual(date);
+
+        value = await myeval(`util.scand("mmddyyyy", "07/15/2007").toString()`);
+        expect(new Date(value)).toEqual(new Date("07/15/2007 12:00:00"));
+
+        value = await myeval(`util.scand("mmddyyyy", "07a15b2007").toString()`);
+        expect(new Date(value)).toEqual(new Date("07/15/2007 12:00:00"));
       });
     });
 
@@ -601,6 +607,52 @@ describe("Scripting", function () {
       value = await myeval(`app.platform = "hello"`);
       expect(value).toEqual("app.platform is read-only");
     });
+
+    it("shouldn't display an alert", async () => {
+      const refId = getId();
+      const data = {
+        objects: {
+          field: [
+            {
+              id: refId,
+              value: "",
+              actions: {
+                Validate: [`app.alert(event.value);`],
+              },
+              type: "text",
+              name: "MyField",
+            },
+          ],
+        },
+        appInfo: { language: "en-US", platform: "Linux x86_64" },
+        calculationOrder: [],
+        dispatchEventName: "_dispatchMe",
+      };
+
+      sandbox.createSandbox(data);
+      await sandbox.dispatchEventInSandbox({
+        id: refId,
+        value: "hello",
+        name: "Keystroke",
+        willCommit: true,
+      });
+      expect(send_queue.has("alert")).toEqual(true);
+      expect(send_queue.get("alert")).toEqual({
+        command: "alert",
+        value: "hello",
+      });
+      send_queue.delete(refId);
+      send_queue.delete("alert");
+
+      await sandbox.dispatchEventInSandbox({
+        id: refId,
+        value: "",
+        name: "Keystroke",
+        willCommit: true,
+      });
+      expect(send_queue.has("alert")).toEqual(false);
+      send_queue.delete(refId);
+    });
   });
 
   describe("AForm", function () {
@@ -624,8 +676,9 @@ describe("Scripting", function () {
           );
         };
 
-        await check("05", "dd", "2000/01/05");
-        await check("12", "mm", "2000/12/01");
+        const year = new Date().getFullYear();
+        await check("05", "dd", `${year}/01/05`);
+        await check("12", "mm", `${year}/12/01`);
         await check("2022", "yyyy", "2022/01/01");
         await check("a1$9bbbb21", "dd/mm/yyyy", "2021/09/01");
         await check("1/2/2024", "dd/mm/yyyy", "2024/02/01");
