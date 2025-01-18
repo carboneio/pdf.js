@@ -15,6 +15,7 @@
 
 import { getRGB, isDataScheme, SVG_NS } from "./display_utils.js";
 import { unreachable, Util, warn } from "../shared/util.js";
+import { GlobalDocumentBody } from "./global_document_body.js";
 
 class BaseFilterFactory {
   constructor() {
@@ -104,7 +105,8 @@ class DOMFilterFactory extends BaseFilterFactory {
       this.#_defs = this.#document.createElementNS(SVG_NS, "defs");
       div.append(svg);
       svg.append(this.#_defs);
-      this.#document.body.append(div);
+      GlobalDocumentBody.node.append(div);
+      // this.#document.body.append(div);
     }
     return this.#_defs;
   }
