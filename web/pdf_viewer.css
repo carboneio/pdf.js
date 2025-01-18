@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import url(dialog.css);
+
 @import url(text_layer_builder.css);
 @import url(annotation_layer_builder.css);
 @import url(xfa_layer_builder.css);
 /* Ignored in GECKOVIEW builds: */
-@import url(annotation_editor_layer_builder.css);
+
 
 :root {
   --viewer-container-height: 0;
@@ -106,7 +106,6 @@
 .pdfViewer .page {
   --scale-round-x: 1px;
   --scale-round-y: 1px;
-
   direction: ltr;
   width: 816px;
   height: 1056px;
@@ -208,15 +207,4 @@
   display: none;
 }
 
-.pdfPresentationMode .pdfViewer {
-  padding-bottom: 0;
-}
 
-.pdfPresentationMode .spread {
-  margin: 0;
-}
-
-.pdfPresentationMode .pdfViewer .page {
-  margin: 0 auto;
-  border: 2px solid transparent;
-}

@@ -10,6 +10,7 @@
     "@jazzer.js/core": "^2.1.0",
     "@metalsmith/layouts": "^2.7.0",
     "@metalsmith/markdown": "^1.10.0",
+    "@types/node": "^22.7.4",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "caniuse-lite": "^1.0.30001667",
@@ -68,5 +69,8 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "scripts": {
+    "knip": "knip"
+  }
 }
