@@ -40,12 +40,15 @@ import {
   InvalidPDFException,
   MissingPDFException,
   shadow,
+  stopEvent,
+  TouchManager,
   UnexpectedResponseException,
   version,
 } from "pdfjs-lib";
 import { AppOptions, OptionKind } from "./app_options.js";
 import { LinkTarget, PDFLinkService } from "./pdf_link_service.js";
 import { CaretBrowsingMode } from "./caret_browsing.js";
+import { EditorUndoBar } from "./editor_undo_bar.js";
 import { EventBus } from "./event_utils.js";
 import { GlobalDocumentBody } from "../src/display/global_document_body.js";
 import { OverlayManager } from "./overlay_manager.js";
@@ -89,13 +92,14 @@ const PDFViewerApplication = {
   _contentLength: null,
   _wheelUnusedTicks: 0,
   _wheelUnusedFactor: 1,
+  _touchManager: null,
   _touchUnusedTicks: 0,
   _touchUnusedFactor: 1,
   _PDFBug: null,
-  _touchInfo: null,
   _isCtrlKeyDown: false,
   _caretBrowsing: null,
   _isScrolling: false,
+  editorUndoBar: null,
 
   // Called once when the document is loaded.
   async initialize(appConfig) {
@@ -153,6 +157,10 @@ const PDFViewerApplication = {
     const container = appConfig.mainContainer,
       viewer = appConfig.viewerContainer;
 
+    if (appConfig.editorUndoBar) {
+      this.editorUndoBar = new EditorUndoBar(appConfig.editorUndoBar, eventBus);
+    }
+
     const enableHWA = AppOptions.get("enableHWA");
     const pdfViewer = new PDFViewer({
       container,
@@ -160,6 +168,7 @@ const PDFViewerApplication = {
       eventBus,
       renderingQueue: pdfRenderingQueue,
       linkService: pdfLinkService,
+      editorUndoBar: this.editorUndoBar,
       findController,
       textLayerMode: AppOptions.get("textLayerMode"),
       enableHighlightFloatingButton: AppOptions.get(
@@ -170,6 +179,7 @@ const PDFViewerApplication = {
       // enablePermissions: AppOptions.get("enablePermissions"),
       abortSignal: this._globalAbortController.signal,
       enableHWA,
+      supportsPinchToZoom: this.supportsPinchToZoom,
     });
     this.pdfViewer = pdfViewer;
 
@@ -230,6 +240,29 @@ const PDFViewerApplication = {
       return;
     }
     this.pdfViewer.currentScaleValue = DEFAULT_SCALE_VALUE;
+  },
+
+  touchPinchCallback(origin, prevDistance, distance) {
+    if (this.supportsPinchToZoom) {
+      const newScaleFactor = this._accumulateFactor(
+        this.pdfViewer.currentScale,
+        distance / prevDistance,
+        "_touchUnusedFactor"
+      );
+      this.updateZoom(null, newScaleFactor, origin);
+    } else {
+      const PIXELS_PER_LINE_SCALE = 30;
+      const ticks = this._accumulateTicks(
+        (distance - prevDistance) / PIXELS_PER_LINE_SCALE,
+        "_touchUnusedTicks"
+      );
+      this.updateZoom(ticks, null, origin);
+    }
+  },
+
+  touchPinchEndCallback() {
+    this._touchUnusedTicks = 0;
+    this._touchUnusedFactor = 1;
   },
 
   get pagesCount() {
@@ -646,42 +679,39 @@ const PDFViewerApplication = {
     if (this._eventBusAbortController) {
       return;
     }
-    this._eventBusAbortController = new AbortController();
+    const ac = (this._eventBusAbortController = new AbortController());
+    const opts = { signal: ac.signal };
 
     const {
       eventBus,
       pdfViewer,
-      _eventBusAbortController: { signal },
+      preferences,
     } = this;
 
-    eventBus._on("resize", onResize.bind(this), { signal });
-    eventBus._on("pagerendered", onPageRendered.bind(this), { signal });
-    // eventBus._on("pagechanging", onPageChanging.bind(this), { signal });
-    eventBus._on("scalechanging", onScaleChanging.bind(this), { signal });
-    eventBus._on("rotationchanging", onRotationChanging.bind(this), { signal });
+    eventBus._on("resize", onResize.bind(this), opts);
+    eventBus._on("pagerendered", onPageRendered.bind(this), opts);
+    // eventBus._on("pagechanging", onPageChanging.bind(this), opts);
+    eventBus._on("scalechanging", onScaleChanging.bind(this), opts);
+    eventBus._on("rotationchanging", onRotationChanging.bind(this), opts);
 
     eventBus._on(
       "scalechanged",
       evt => (pdfViewer.currentScaleValue = evt.value),
-      { signal }
+      opts
     );
-    eventBus._on("switchscrollmode", evt => (pdfViewer.scrollMode = evt.mode), {
-      signal,
-    });
-    eventBus._on("switchspreadmode", evt => (pdfViewer.spreadMode = evt.mode), {
-      signal,
-    });
+    eventBus._on("switchscrollmode", evt => (pdfViewer.scrollMode = evt.mode), opts);
+    eventBus._on("switchspreadmode", evt => (pdfViewer.spreadMode = evt.mode), opts);
 
-    eventBus._on("findfromurlhash", onFindFromUrlHash.bind(this), { signal });
+    eventBus._on("findfromurlhash", onFindFromUrlHash.bind(this), opts);
     eventBus._on(
       "updatefindmatchescount",
       onUpdateFindMatchesCount.bind(this),
-      { signal }
+      opts
     );
     eventBus._on(
       "updatefindcontrolstate",
       onUpdateFindControlState.bind(this),
-      { signal }
+      opts
     );
   },
 
@@ -697,6 +727,20 @@ const PDFViewerApplication = {
       pdfViewer,
       _windowAbortController: { signal },
     } = this;
+
+    if (
+      (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) ||
+      typeof AbortSignal.any === "function"
+    ) {
+      this._touchManager = new TouchManager({
+        container: window,
+        isPinchingDisabled: () => pdfViewer.isInPresentationMode,
+        isPinchingStopped: () => this.overlayManager?.active,
+        onPinching: this.touchPinchCallback.bind(this),
+        onPinchEnd: this.touchPinchEndCallback.bind(this),
+        signal,
+      });
+    }
 
     function addWindowResolutionChange(evt = null) {
       if (evt) {
@@ -765,7 +809,7 @@ const PDFViewerApplication = {
         return;
       }
 
-      mainContainer.removeEventListener("scroll", scroll, { passive: true });
+      mainContainer.removeEventListener("scroll", scroll);
       this._isScrolling = true;
       mainContainer.addEventListener("scrollend", scrollend, { signal });
       mainContainer.addEventListener("blur", scrollend, { signal });
@@ -784,6 +828,7 @@ const PDFViewerApplication = {
   unbindWindowEvents() {
     this._windowAbortController?.abort();
     this._windowAbortController = null;
+    this._touchManager = null;
   },
 
   _accumulateTicks(ticks, prop) {
@@ -989,6 +1034,20 @@ function onWheel(evt) {
   }
 }
 
+function closeEditorUndoBar(evt) {
+  if (!this.editorUndoBar?.isOpen) {
+    return;
+  }
+  if (this.appConfig.secondaryToolbar?.toolbar.contains(evt.target)) {
+    this.editorUndoBar.hide();
+  }
+}
+
+function onClick(evt) {
+  closeSecondaryToolbar.call(this, evt);
+  closeEditorUndoBar.call(this, evt);
+}
+
 function onKeyUp(evt) {
   // evt.ctrlKey is false hence we use evt.key.
   if (evt.key === "Control") {
@@ -998,6 +1057,20 @@ function onKeyUp(evt) {
 
 function onKeyDown(evt) {
   this._isCtrlKeyDown = evt.key === "Control";
+
+  if (
+    this.editorUndoBar?.isOpen &&
+    evt.keyCode !== 9 &&
+    evt.keyCode !== 16 &&
+    !(
+      (evt.keyCode === 13 || evt.keyCode === 32) &&
+      getActiveOrFocusedElement() === this.appConfig.editorUndoBar.undoButton
+    )
+  ) {
+    // Hide undo bar on keypress except for Shift, Tab, Shift+Tab.
+    // Also avoid hiding if the undo button is triggered.
+    this.editorUndoBar.hide();
+  }
 
   if (this.overlayManager.active) {
     return;
