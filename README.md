@@ -123,6 +123,29 @@ npx gulp minified
 http://localhost:8888/build/generic/web/viewer.html
 ```
 
+
+### How to upgrade 
+
+```sh
+# Add original fork if not already done
+git remote add upstream https://github.com/mozilla/pdf.js.git
+# Pull orignal updates
+git pull upstream master
+# Pull tags
+git fetch --tags upstream
+# update master of the fork
+git push
+``` 
+
+Merge and rebuild
+
+```sh
+# go 
+git checkout viewer-compact
+git merge v4.10.38 --no-commit --no-ff
+```
+
+
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 Original README:
